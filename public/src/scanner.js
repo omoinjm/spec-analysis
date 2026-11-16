@@ -132,7 +132,8 @@ export async function scan(root) {
       reading = true;
       lastReadAt = performance.now();
       const frameCode = lastFrameCode;
-      if (!lastCandidate) setHint('Reading… keep steady', 'info');
+      const keepDistanceHint = lastTextAdvice && ['closer', 'further', 'none'].includes(lastTextAdvice.code);
+      if (!lastCandidate && !keepDistanceHint) setHint('Reading… keep steady', 'info');
       loader.hidden = false;
       loaderText.textContent = 'Scanning…';
       loaderBar.style.width = '5%';
@@ -150,7 +151,8 @@ export async function scan(root) {
         const cpus = findCpus(data.text);
         const adv = textAdvice(data.words, crop.width, crop.height);
         lastTextAdvice = adv;
-        setCheck('distance', adv.code === 'closer' || adv.code === 'further' || adv.code === 'none' ? 'bad' : 'good');
+        const distanceBad = adv.code === 'closer' || adv.code === 'further' || (adv.code === 'none' && frameCode !== 'blur');
+        setCheck('distance', distanceBad ? 'bad' : frameCode === 'blur' && adv.code === 'none' ? 'idle' : 'good');
 
         if (cpus.length) {
           const cpu = cpus[0];

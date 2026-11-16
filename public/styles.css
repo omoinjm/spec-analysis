@@ -39,6 +39,8 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
+#results { scroll-margin-top: 110px; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
