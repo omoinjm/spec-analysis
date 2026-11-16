@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Spec Decoder</title>
+  <meta name="description" content="Snap a photo of a computer's specs and find out what the processor is really for.">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><img src="icons/icon.svg" alt="" width="28" height="28"> Spec Decoder</div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="scan" aria-selected="true">Scan</button>
+      <button role="tab" data-tab="compare" aria-selected="false">Compare <span id="cmp-count" class="pill" hidden></span></button>
+      <button role="tab" data-tab="learn" aria-selected="false">Learn</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- SCAN -->
+    <section id="tab-scan" class="tab" role="tabpanel">
+      <div class="capture card">
+        <p class="hint">Snap the spec sticker, the shop label, or a screenshot of <em>Settings › About</em> / <em>About This Mac</em>.</p>
+        <div class="row">
+          <label class="btn primary">
+            📷 Take photo
+            <input id="in-camera" type="file" accept="image/*" capture="environment" hidden>
+          </label>
+          <label class="btn">
+            🖼️ Choose image
+            <input id="in-file" type="file" accept="image/*" hidden>
+          </label>
+        </div>
+        <p class="small muted">Tip: you can also paste a screenshot (Ctrl/⌘+V). Everything runs on your device.</p>
+
+        <div id="preview-wrap" hidden>
+          <img id="preview" alt="Captured spec image">
+          <div id="ocr-progress" class="progress" hidden><div></div><span>Reading text…</span></div>
+        </div>
+
+        <label for="spec-text" class="label">Or type / edit the specs</label>
+        <textarea id="spec-text" rows="3" placeholder="e.g. Intel Core i7-8550U, 16 GB RAM — or — Ryzen 7 7840HS"></textarea>
+        <div class="row">
+          <button id="btn-decode" class="btn primary">Decode</button>
+          <button id="btn-clear" class="btn ghost">Clear</button>
+        </div>
+      </div>
+
+      <div id="results" aria-live="polite"></div>
+    </section>
+
+    <!-- COMPARE -->
+    <section id="tab-compare" class="tab" role="tabpanel" hidden>
+      <div class="card">
+        <p class="hint">Which one is better? Pick two chips from a scan (“Set as A” / “Set as B”) or type them here.</p>
+        <div class="cmp-inputs">
+          <div>
+            <label class="label" for="cmp-a">Computer A</label>
+            <input id="cmp-a" type="text" placeholder="e.g. i7-8550U">
+          </div>
+          <div>
+            <label class="label" for="cmp-b">Computer B</label>
+            <input id="cmp-b" type="text" placeholder="e.g. i5-13500H">
+          </div>
+        </div>
+        <div class="row">
+          <button id="btn-compare" class="btn primary">Compare</button>
+          <button id="btn-cmp-demo" class="btn ghost">Try the video's example</button>
+        </div>
+      </div>
+      <div id="cmp-result" aria-live="polite"></div>
+    </section>
+
+    <!-- LEARN -->
+    <section id="tab-learn" class="tab" role="tabpanel" hidden>
+      <div class="card prose">
+        <h2>“i7” on its own means nothing</h2>
+        <p>The processor is the <strong>kitchen</strong> that cooks everything you do.</p>
+        <ul class="kitchen">
+          <li><span>👩‍🍳</span><div><strong>Cores</strong> are the cooks — more cooks, more dishes at once.</div></li>
+          <li><span>⚡</span><div><strong>GHz</strong> is how fast each cook works.</div></li>
+          <li><span>🧺</span><div><strong>Cache</strong> is the counter next to them — bigger means more within reach.</div></li>
+        </ul>
+
+        <h3>Reading the name</h3>
+        <div class="decoded big">
+          <span class="seg tier">i7</span><span class="sep">-</span><span class="seg generation">13</span><span class="seg rank">700</span><span class="seg suffix">H</span>
+        </div>
+        <dl class="legend">
+          <div><dt class="tier">Tier</dt><dd>i3 · i5 · i7 · i9 — like classes on a plane.</dd></div>
+          <div><dt class="generation">Generation</dt><dd>Often the <strong>most important number</strong> in the name.</dd></div>
+          <div><dt class="rank">Rank</dt><dd>Position within the tier &amp; generation. Bigger = stronger.</dd></div>
+          <div><dt class="suffix">Letter</dt><dd>Where the secret is: <b>U</b> saves battery · <b>H</b> high performance · <b>HX</b> monster · <b>K</b> overclockable desktop · <b>F</b> no built-in graphics.</dd></div>
+        </dl>
+
+        <h3>Same idea everywhere</h3>
+        <p>Intel <strong>Core Ultra 5/7/9</strong> · AMD <strong>Ryzen 5/7/9</strong> · Apple <strong>M</strong> chips with <strong>Pro</strong> and <strong>Max</strong>.</p>
+
+        <h3>How to pick</h3>
+        <ol>
+          <li>Check the <strong>generation</strong>.</li>
+          <li>Then the <strong>tier</strong>.</li>
+          <li>Then the <strong>last letter</strong> for what you need.</li>
+          <li>Still unsure? Search both names with <em>benchmark</em>. Gaming → single-core score. Video editing → multi-core score.</li>
+        </ol>
+        <p class="callout">⚠️ The same chip in a very thin laptop can be slower — cooling makes all the difference.</p>
+
+        <h3>Quick test</h3>
+        <p>Core i5-1235U — work or gaming?</p>
+        <details><summary>Show answer</summary><p>The <b>U</b> gives it away: it's for work and school, not big games.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot small muted">Scores are rough estimates from name rules (Core i7-13700H = 100). Always confirm with real benchmarks.</footer>
+
+  <template id="tpl-cpu">
+    <article class="card cpu">
+      <div class="cat"></div>
+      <h2 class="cpu-name"></h2>
+      <div class="decoded"></div>
+      <dl class="legend parts"></dl>
+      <div class="age"></div>
+      <div class="scores"></div>
+      <ul class="uses"></ul>
+      <ul class="notes"></ul>
+      <div class="row actions">
+        <a class="btn ghost bench" target="_blank" rel="noopener">🔎 Benchmark</a>
+        <button class="btn add-a">Set as A</button>
+        <button class="btn add-b">Set as B</button>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>

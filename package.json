@@ -1,0 +1,16 @@
+{
+  "name": "spec-analysis",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "PWA: snap a photo of a computer's specs, decode the CPU name and categorize it.",
+  "scripts": {
+    "test": "node --test",
+    "icons": "node scripts/make-icons.js",
+    "start": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.163.0"
+  }
+}
