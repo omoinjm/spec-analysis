@@ -36,7 +36,7 @@ Compare mode puts two chips side by side. The built-in example is the one from t
 Supported: Intel Core i3–i9 (1st–14th gen), Core Ultra (Series 1/2), Core 3/5/7, AMD Ryzen (incl. AI 300, PRO, X3D, 2023+ laptop numbering),
 Apple M1–M5 (Pro/Max/Ultra), Snapdragon X, and Celeron/Pentium/N-series/Athlon. It also picks up RAM, GHz, storage and GPU when they are visible.
 
-Live: **https://spec-decoder.njmalaza.workers.dev**
+Live: **https://spec-analysis.njmalaza.workers.dev**
 
 ## Run
 

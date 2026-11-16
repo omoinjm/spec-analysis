@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "spec-decoder",
+  "name": "spec-analysis",
   "account_id": "c2db456075f9ab9579ff7bb76674a984",
   "compatibility_date": "2026-11-01",
   // Static-assets-only Worker: no server code, just the PWA in ./public
