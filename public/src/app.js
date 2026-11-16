@@ -1,5 +1,6 @@
 import { findCpus, findExtras, compare, ramAdvice, CATEGORY_INFO, AGE_INFO } from './decoder.js';
 import { recognise } from './ocr.js';
+import { scan, cameraSupported } from './scanner.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const el = (tag, cls, text) => {
@@ -62,6 +63,31 @@ function setProgress(p, label) {
   handleImage(e.target.files[0]);
   e.target.value = '';
 }));
+
+// Live camera scanner (falls back to the native photo picker when getUserMedia isn't available).
+$('#btn-scan').addEventListener('click', async () => {
+  if (!cameraSupported() || !window.isSecureContext) { $('#in-camera').click(); return; }
+  let result;
+  try {
+    result = await scan($('#scanner'));
+  } catch (err) {
+    const denied = err && (err.name === 'NotAllowedError' || err.name === 'SecurityError');
+    toast(denied ? 'Camera permission denied — using the photo picker instead.' : 'Couldn’t open the camera — using the photo picker instead.');
+    $('#in-camera').click();
+    return;
+  }
+  if (!result) return;                       // user closed the scanner
+  if (result.fallback) { $('#in-camera').click(); return; }
+  $('#preview').src = result.snapshot;
+  $('#preview-wrap').hidden = false;
+  textArea.value = result.text.trim();
+  decode();
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$('#scanner').hidden) $('#scanner .scan-close').click();
+});
+
 document.addEventListener('paste', (e) => {
   const item = [...(e.clipboardData?.items || [])].find((i) => i.type.startsWith('image/'));
   if (item) { e.preventDefault(); showTab('scan'); handleImage(item.getAsFile()); }

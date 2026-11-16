@@ -15,7 +15,7 @@ function loadScript(src) {
   });
 }
 
-async function getWorker() {
+function getWorker() {
   if (!workerPromise) {
     workerPromise = (async () => {
       await loadScript(TESSERACT_URL);
@@ -30,17 +30,15 @@ async function getWorker() {
   return workerPromise;
 }
 
-/** Upscale small images, grayscale + stretch contrast: helps OCR on photos of stickers. */
-async function preprocess(file) {
-  const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }).catch(() => createImageBitmap(file));
-  const longest = Math.max(bmp.width, bmp.height);
-  const scale = longest < 1600 ? 1600 / longest : longest > 3000 ? 3000 / longest : 1;
-  const w = Math.round(bmp.width * scale), h = Math.round(bmp.height * scale);
-  const canvas = document.createElement('canvas');
-  canvas.width = w; canvas.height = h;
+/** Start loading the engine early (e.g. when the camera opens) so the first read is fast. */
+export function warmUp() {
+  return getWorker();
+}
+
+/** Grayscale + stretch contrast in place: helps OCR on photos of stickers and screens. */
+export function enhance(canvas) {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  ctx.drawImage(bmp, 0, 0, w, h);
-  const img = ctx.getImageData(0, 0, w, h);
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const d = img.data;
   let min = 255, max = 0;
   for (let i = 0; i < d.length; i += 4) {
@@ -58,10 +56,29 @@ async function preprocess(file) {
   return canvas;
 }
 
+/** Upscale small images / downscale huge ones, then enhance. */
+async function fileToCanvas(file) {
+  const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }).catch(() => createImageBitmap(file));
+  const longest = Math.max(bmp.width, bmp.height);
+  const scale = longest < 1600 ? 1600 / longest : longest > 3000 ? 3000 / longest : 1;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bmp.width * scale);
+  canvas.height = Math.round(bmp.height * scale);
+  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  return enhance(canvas);
+}
+
+/** OCR a canvas. Returns Tesseract's data: { text, confidence, words: [{ text, confidence, bbox }] }. */
+export async function recogniseCanvas(canvas, onProgress = () => {}) {
+  const worker = await getWorker();
+  progressCb = onProgress;
+  const { data } = await worker.recognize(canvas);
+  return data;
+}
+
 export async function recognise(file, onProgress = () => {}) {
   progressCb = onProgress;
   onProgress(null, 'Loading OCR engine…');
-  const [worker, canvas] = await Promise.all([getWorker(), preprocess(file)]);
-  const { data } = await worker.recognize(canvas);
-  return data.text;
+  const [, canvas] = await Promise.all([getWorker(), fileToCanvas(file)]);
+  return (await recogniseCanvas(canvas, onProgress)).text;
 }

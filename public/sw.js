@@ -1,6 +1,6 @@
 // Service worker: precache the app shell; cache the OCR engine + language data on first use
 // so scanning works offline afterwards.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL = `shell-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 const SHELL_FILES = [
@@ -11,6 +11,8 @@ const SHELL_FILES = [
   'src/app.js',
   'src/decoder.js',
   'src/ocr.js',
+  'src/quality.js',
+  'src/scanner.js',
   'icons/icon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png',
