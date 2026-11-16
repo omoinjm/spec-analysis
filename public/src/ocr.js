@@ -2,7 +2,18 @@
 const TESSERACT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
 
 let workerPromise = null;
+let ready = false;
 let progressCb = () => {};
+
+// Friendlier labels for Tesseract's loading stages (only the first scan downloads anything).
+const STAGES = {
+  'loading tesseract core': 'Loading text reader…',
+  'initializing tesseract': 'Starting text reader…',
+  'loading language traineddata': 'Downloading language data…',
+  'loading language traineddata (from cache)': 'Loading language data…',
+  'initializing api': 'Almost ready…',
+  'recognizing text': 'Scanning…',
+};
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -21,14 +32,19 @@ function getWorker() {
       await loadScript(TESSERACT_URL);
       return window.Tesseract.createWorker('eng', 1, {
         logger: (m) => {
-          if (m.status === 'recognizing text') progressCb(m.progress, 'Reading text…');
-          else if (m.status) progressCb(null, m.status.replace(/^\w/, (c) => c.toUpperCase()) + '…');
+          if (!m.status) return;
+          const label = STAGES[m.status] ?? m.status.replace(/^\w/, (c) => c.toUpperCase()) + '…';
+          const p = typeof m.progress === 'number' && m.progress > 0 && m.progress < 1 ? m.progress : null;
+          progressCb(m.status === 'recognizing text' ? m.progress : p, label, m.status);
         },
       });
-    })().catch((e) => { workerPromise = null; throw e; });
+    })().then((w) => { ready = true; return w; }).catch((e) => { workerPromise = null; throw e; });
   }
   return workerPromise;
 }
+
+/** True once the OCR engine has finished loading. */
+export const isReady = () => ready;
 
 /** Start loading the engine early (e.g. when the camera opens) so the first read is fast. */
 export function warmUp() {
@@ -70,8 +86,8 @@ async function fileToCanvas(file) {
 
 /** OCR a canvas. Returns Tesseract's data: { text, confidence, words: [{ text, confidence, bbox }] }. */
 export async function recogniseCanvas(canvas, onProgress = () => {}) {
+  progressCb = onProgress; // set before loading so download progress is reported too
   const worker = await getWorker();
-  progressCb = onProgress;
   const { data } = await worker.recognize(canvas);
   return data;
 }

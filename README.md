@@ -8,6 +8,10 @@ guides you until the text is readable:
 - **Too dark / too much glare**, **hold still**, plus a 🔦 torch button where the phone supports it
 - A warning if the camera's resolution is low
 
+A warning only appears once a problem has lasted about half a second. Normal hand tremor and auto-exposure changes are ignored.
+"Too blurry" is only shown when the frame is soft *and* the text couldn't be read.
+A **Sensitivity** switch (Low / Medium / High, default Medium) sets how strict the checks are. It is remembered on the device.
+
 Light, Focus and Distance checks are shown at the top of the screen. A loader shows while each frame is being read.
 The text is read on the device, and the scanner closes as soon as it has confidently recognised a processor name.
 It then decodes the name using the rules from the "how to read a processor's name" video:
@@ -51,7 +55,7 @@ The camera and the install prompt need HTTPS on phones.
 
 - `public/src/decoder.js`: pure, tested rule engine (regex → tier / gen / rank / suffix → category and scores).
 - `public/src/scanner.js`: the live camera loop. It crops the frame under the on-screen guide, checks quality about 6×/s, and runs OCR when the frame is steady. It accepts a result on a confident read, or when two reads in a row agree.
-- `public/src/quality.js`: pure, tested frame metrics (brightness, contrast, strongest-edge sharpness, motion) plus closer/further advice based on the size of the OCR'd words.
+- `public/src/quality.js`: pure, tested frame metrics (brightness, contrast, strongest-edge sharpness, shake-tolerant motion), the sensitivity presets, a debouncer, and closer/further advice based on the size of the OCR'd words.
 - `public/src/ocr.js`: Tesseract.js 5, loaded lazily. It upscales the image and converts it to grayscale with stretched contrast before reading.
 - `public/sw.js`: precaches the app shell. It also caches the OCR engine and English language data the first time they are used, so scanning works offline after that.
 
